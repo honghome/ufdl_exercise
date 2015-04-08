@@ -45,25 +45,13 @@ b2grad = zeros(size(b2));
 % Feed-forward to compute h
 m = size(data)(2);
 a1 = data; % visiblesize x m
-z2 = W1 * a1; % hiddensize x visiblesize * visiblesize x m --> hiddensize x m
-for i = 1:m
-    z2(:,i) = z2(:,i) + b1; % hiddensize + hiddensize
-end
-
+z2 = W1 * a1 + repmat(b1, 1, m); % hiddensize x visiblesize * visiblesize x m --> hiddensize x m
 a2 = sigmoid(z2); % hiddensize x m
-z3 = W2 * a2; % visiblesize x hiddensize * hiddensize x m --> visiblesize x m
-for i = 1:m
-    z3(:,i) = z3(:,i) + b2; % visiblesize + visiablesize
-end
-
+z3 = W2 * a2 + repmat(b2, 1, m); % visiblesize x hiddensize * hiddensize x m --> visiblesize x m
 h = sigmoid(z3); % visiblesize x m
 
-
-% backpropagation to compute gradient
-for i = 1:m
-    cost += sum((h(:,i) - data(:,i)) .^ 2);
-end
-cost = 1/(2*m) * cost;
+% get cost function
+cost = 1/(2*m) * sum(sum((h - data) .^ 2));
 
 % add weight decay
 cost = cost + lambda/2 * (sum(sum(W1 .^ 2)) + sum(sum(W2 .^ 2)));
@@ -72,17 +60,15 @@ cost = cost + lambda/2 * (sum(sum(W1 .^ 2)) + sum(sum(W2 .^ 2)));
 averActivation = mean(a2, 2);
 cost = cost + beta * KLdivergence(averActivation, sparsityParam);
 
-d3 = (h - data) .* sigmoidGradient(z3); % visiblesize x m
+% backpropagation to compute gradient
+d3 = (h - data) .* sigmoidGradient(z3);	% visiblesize x m
 %d2 = (W2)' * d3 .* sigmoidGradient(z2); % (visiblesize x hiddensize)' * visiblesize x m + hiddensize x m
-d2 = (W2)' * d3; % hiddensize x m
-for i = 1:m
-	d2(:,i) = d2(:,i) + beta * ((1-sparsityParam)./(1-averActivation) - sparsityParam./averActivation);
-end
-d2 = d2 .* sigmoidGradient(z2);
+extra = beta * ((1-sparsityParam)./(1-averActivation) - sparsityParam./averActivation);
+d2 = ((W2)' * d3 + repmat(extra, 1, m)) .* sigmoidGradient(z2);	% hiddensize x m
 
 W1grad = d2 * a1' ./ m;	% hiddensize x visiblesize , d2(i,:) * a1'(:,j) is a accumulated value
 W2grad = d3 * a2' ./ m;	% visiblesize x hiddensize
-b1grad = mean(d2,2) ;	% hiddensize x m --> hiddensize x 1
+b1grad = mean(d2,2);	% hiddensize x m --> hiddensize x 1
 b2grad = mean(d3,2);	% visiblesize x m --> visiblesize x 1
 
 % add weight decay

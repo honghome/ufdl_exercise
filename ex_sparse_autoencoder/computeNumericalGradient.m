@@ -17,19 +17,23 @@ numgrad = zeros(size(theta));
 %                
 % Hint: You will probably want to compute the elements of numgrad one at a time. 
 
-perturb = zeros(size(theta));
+%perturb = zeros(size(theta));
+% e = 1e-4;
+% for p = 1:numel(theta)
+%    perturb(p) = e;
+%    loss1 = J(theta - perturb);
+%    loss2 = J(theta + perturb);
+%    numgrad(p) = (loss2 - loss1) / (2*e);
+%    perturb(p) = 0;
+% end
 e = 1e-4;
-for p = 1:numel(theta)
-    perturb(p) = e;
-    loss1 = J(theta - perturb);
-    loss2 = J(theta + perturb);
-    numgrad(p) = (loss2 - loss1) / (2*e);
-    perturb(p) = 0;
+thetaNum = numel(theta);
+mat1 = repmat(theta, 1, thetaNum) - diag(repmat(e, thetaNum, 1));
+mat2 = repmat(theta, 1, thetaNum) + diag(repmat(e, thetaNum, 1));
+for i = 1: thetaNum
+	numgrad(i) = (J(mat2(:,i)) - J(mat1(:,i)));
 end
-
-
-
-
+numgrad = numgrad ./ (2*e);
 
 %% ---------------------------------------------------------------
 end
