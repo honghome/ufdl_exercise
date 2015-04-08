@@ -1,0 +1,27 @@
+Step 1: Generate training set
+从10张图里面随机选择一张图，并在这张图里边采样8x8大小的图片1000张
+
+IMAGES.mat:
+一共存储了10张图片，每张大小为512x512
+imagesc(IMAGES(:,:,ind)) 可以显示第ind张图片
+
+
+
+Step 2: Sparse autoencoder objective
+完成sparse autoencoder的cost function 和 derivative
+
+	因为完整的sparse autoencoder需要引入weight decay term(λ) 和 the sparsity penalty(β)
+为了调试方便，我们可以先设置λ = β = 0，当我们确定cost function 和 derivative准确无误之后再将其引入,并且此时最好用少量的训练集
+	为此我们需要完成computeNumericalGradient.m 来进行验证，同时为了保证computeNumericalGradient.m 的代码无误，
+我们需要用一个已经实现好的checkNumericalGradient.m来进行检验。
+	checkNumericalGradient.m通过计算h(x) = x1^2 + 3x1x2 再点(4, 10)的导数，再和computeNumericalGradient.m
+的计算结果进行比较来检验它
+	而对于cost 和 derivative的求值过程，只要熟悉整个求导过程和其在矩阵运算中的细节就可以了
+	最后我们再把 λ，β 引入，依然通过梯度检验来检验，而到了这一步，实验基本上成功了。成功之后再进入step 4。
+
+Step 3: Gradient checking
+梯度检验，利用导数的数学定义来计算特征函数的导数
+
+Step 4: Train the sparse autoencoder
+
+Step 5: Visualization
